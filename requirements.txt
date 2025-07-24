@@ -1,0 +1,7 @@
+python_dotenv
+crewai
+crewai-tools
+langchain_community
+langchain-google-genai
+faiss-cpu
+pyPdf
