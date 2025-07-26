@@ -25,19 +25,5 @@ class ResumeParseAgent:
             Work or project experience
         """,
         agent= self.agent,
-        expected_output= """Give the output concise way as below example format only
-
-        {
-          "name" : "...",
-          "email" : "...",
-          "job_role": "...",
-          "job_family": "...",
-          "total_experience" : "2+ years ",
-          "primary_skills": [...],
-          "secondary_skills": [...],
-          "current_location: "...",
-          "work_experience" : [...],
-          "certifications": [...]
-        }
-        """
+        expected_output= """Give the output concise way as only bullet points"""
         )

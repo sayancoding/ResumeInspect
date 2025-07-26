@@ -21,14 +21,5 @@ class JDParserAgent:
                     if any not found, kept it blank and extract skills from only Specified on JD, Don't overthink or assume
                     """,
         agent= self.agent,
-        expected_output="""Give the output concise way as below example format
-        {
-          "job_role": "...",
-          "job_family": "...",
-          "required_experience" : "...",
-          "primary_skills": [...],
-          "secondary_skills": [...],
-          "location: "..."
-        }
-        """
+        expected_output="Give the output concise way as only bullet points"
     )
