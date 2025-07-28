@@ -8,7 +8,6 @@ from utils.VectorStore import VectorStore
 async def main():
 
     jd = """
-Requirements
 Proficiency in Java and its frameworks such as Spring, Hibernate, and JUnit
 Strong understanding of RESTful APIs, data modeling concepts, and integration patterns
 Knowledge of database systems including SQL, and scripting capabilities with Python and Bash
@@ -28,7 +27,13 @@ Showcase of certifications in service-based frameworks like AWS or Java
     """JD & Resume embedding and storing at vector DB (FAISS)"""
     vs = VectorStore()
     await vs.store_Jd_as_Vector(jd)
-    # await vs.store_resume_as_Vector('./data/resume.pdf')
+    await vs.store_resume_as_Vector('./data/resume.pdf')
+
+    res_jd = vs.get_JD_vector()
+    print(res_jd.as_retriever().invoke(""))
+    
+    res_resume = vs.get_resume_vector()
+    print(res_resume.as_retriever().invoke(""))
 
     from crews.JdExtractCrew import JdExtractCrew
     from crews.ResumeExtractCrew import ResumeExtractCrew 
