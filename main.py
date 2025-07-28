@@ -1,59 +1,64 @@
-import asyncio
+from fastapi import (FastAPI, 
+                     UploadFile,
+                     File,
+                     Body,
+                     HTTPException)
+import os
+import shutil
+import logging
 
-from utils.VectorStore import VectorStore
+from core.AppFeature import AppFeature
 
+app = FastAPI()
+core = AppFeature()
 
+RESUME_DIR = 'data' # uploaded resume store path
+os.makedirs(RESUME_DIR,exist_ok=True) # create that directory is not exist
 
+@app.get("/welcome")
+def welcome():
+    return {'message' : 'Welcome to ResumeAI tools!!'}
 
-async def main():
-
-    jd = """
-Proficiency in Java and its frameworks such as Spring, Hibernate, and JUnit
-Strong understanding of RESTful APIs, data modeling concepts, and integration patterns
-Knowledge of database systems including SQL, and scripting capabilities with Python and Bash
-Background in data ingestion, transformation, ETL/ELT pipelines, and workflows
-Experience with Git or other version control systems in Agile development environments
-Skills in problem-solving, troubleshooting, and analytical reasoning
-Familiarity with AWS services such as EC2, S3, and Lambda
-
-Nice to have
-Understanding of big data technologies like Apache Kafka and Apache Spark
-Knowledge of containerization tools such as Docker and Kubernetes
-Awareness of data governance, security, and quality standards
-Familiarity with Snowflake data warehousing and query optimization techniques
-Showcase of certifications in service-based frameworks like AWS or Java
-"""
-
-    """JD & Resume embedding and storing at vector DB (FAISS)"""
-    vs = VectorStore()
-    await vs.store_Jd_as_Vector(jd)
-    await vs.store_resume_as_Vector('./data/resume.pdf')
-
-    res_jd = vs.get_JD_vector()
-    print(res_jd.as_retriever().invoke(""))
+@app.post("/api/uploadResume")
+async def upload_resume(file : UploadFile = File(...)):
+    """
+    Upload resume 
+    """
+    if(file.content_type != "application/pdf"):
+        raise HTTPException(status_code=400,detail="Only PDF files are allowed!")
     
-    res_resume = vs.get_resume_vector()
-    print(res_resume.as_retriever().invoke(""))
-
-    from crews.JdExtractCrew import JdExtractCrew
-    from crews.ResumeExtractCrew import ResumeExtractCrew 
-    from crews.MatcherCrew import MatcherCrew
-
-    """Parse / Extract info from Resume"""
-    resume_response = ResumeExtractCrew().crew.kickoff()
-    print(resume_response)
-
-    """Parse / Extract info from JD"""
-    jd_response = JdExtractCrew().crew.kickoff()
-    print(jd_response) 
+    file_location  = os.path.join(RESUME_DIR, 'resume.pdf')
     
-    """Matching both JD and resume and analyzing"""
-    match_response = MatcherCrew().crew.kickoff(inputs={'resume_output': str(resume_response.raw), 
-                                                 'jd_output': str(jd_response.raw) })
-    print(match_response) 
+    try: 
+        with open(file_location,"wb") as buffer:
+            shutil.copyfileobj(file.file,buffer)
+        logging.info("Resume is uploaded")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+        await core.embedding_resume()
+        logging.info("Resume is embedded and store at vectorStore")
 
+        return {"message" : "Resume is uploaded & embedded successfully"}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"{ex}")
+    finally:
+        file.file.close()
 
+@app.post("/api/uploadJd")        
+async def upload_jd(jd:str = Body(...)):
+    """
+    JD Upload 
+    """
+    await core.upload_jd(jd)
+    logging.info("JD is embedded and store at vectorStore")
 
+    return {"message" : "JD is embedded & store at vectorStore"}
+
+@app.get("/api/matching")        
+async def match_resume_jd():
+    """
+    matching JD & resume 
+    """
+    logging.info("Analyzing Resume & JD...")
+    res = await core.matching_resume_jd()
+    logging.info(res)
+    return res
