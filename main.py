@@ -1,8 +1,11 @@
-from fastapi import (FastAPI, 
+from fastapi import (FastAPI,
+                     APIRouter, 
                      UploadFile,
                      File,
                      Body,
                      HTTPException)
+from fastapi.responses import StreamingResponse
+
 import os
 import shutil
 import logging
@@ -11,11 +14,12 @@ from core.AppFeature import AppFeature
 
 app = FastAPI()
 core = AppFeature()
+router = APIRouter()
 
 RESUME_DIR = 'data' # uploaded resume store path
 os.makedirs(RESUME_DIR,exist_ok=True) # create that directory is not exist
 
-@app.get("/welcome")
+@app.get("/api/welcome")
 def welcome():
     return {'message' : 'Welcome to ResumeAI tools!!'}
 
@@ -54,11 +58,23 @@ async def upload_jd(jd:str = Body(...)):
     return {"message" : "JD is embedded & store at vectorStore"}
 
 @app.get("/api/matching")        
-async def match_resume_jd():
+def match_resume_jd_trigger():
     """
     matching JD & resume 
     """
     logging.info("Analyzing Resume & JD...")
-    res = await core.matching_resume_jd()
+    res = core.matching_resume_jd()
     logging.info(res)
     return res
+
+@router.get('/api/matchingJdResume')
+def match_resume_jd():
+    """
+    matching JD & resume
+    with SSE (Server Side Event) 
+    """
+    def event_generator():
+        for log in core.matching_resume_jd():
+            yield f"data: {log}\n\n"
+    
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
