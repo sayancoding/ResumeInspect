@@ -1,5 +1,4 @@
 from fastapi import (FastAPI,
-                     APIRouter, 
                      UploadFile,
                      File,
                      Body,
@@ -15,7 +14,6 @@ from core.AppFeature import AppFeature
 
 app = FastAPI()
 core = AppFeature()
-router = APIRouter()
 
 """
 CORS config
@@ -79,7 +77,7 @@ def match_resume_jd_trigger():
     logging.info(res)
     return res
 
-@router.get('/api/matchingJdResume')
+@app.get('/api/matchingJdResume')
 def match_resume_jd():
     """
     matching JD & resume
