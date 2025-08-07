@@ -5,6 +5,7 @@ from fastapi import (FastAPI,
                      Body,
                      HTTPException)
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 import os
 import shutil
@@ -15,6 +16,17 @@ from core.AppFeature import AppFeature
 app = FastAPI()
 core = AppFeature()
 router = APIRouter()
+
+"""
+CORS config
+"""
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True, 
+        allow_methods=["*"],  
+        allow_headers=["*"], 
+    )
 
 RESUME_DIR = 'data' # uploaded resume store path
 os.makedirs(RESUME_DIR,exist_ok=True) # create that directory is not exist
