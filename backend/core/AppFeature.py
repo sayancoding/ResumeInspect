@@ -1,4 +1,5 @@
 from utils.VectorStore import VectorStore
+import json
 
 class AppFeature:
     def __init__(self) -> None:
@@ -15,26 +16,11 @@ class AppFeature:
         print("resume is uploaded..")
 
     def matching_resume_jd(self):
-        from crews.JdExtractCrew import JdExtractCrew
-        from crews.ResumeExtractCrew import ResumeExtractCrew 
-        from crews.MatcherCrew import MatcherCrew
-
-        """Parse / Extract info from Resume"""
-        resume_response = ResumeExtractCrew().crew.kickoff()
-        print(resume_response)
-        yield f"✅ Resume Parsed"
-
-        """Parse / Extract info from JD"""
-        jd_response = JdExtractCrew().crew.kickoff()
-        print(jd_response) 
-        yield f"✅ JD Parsed"
+        from core.crews import ProfileMatcherCrew
         
-        """Matching both JD and resume and analyzing"""
-        match_response = MatcherCrew().crew.kickoff(inputs={'resume_output': str(resume_response.raw), 
-                                                    'jd_output': str(jd_response.raw) })
-        
-        yield match_response.raw
-
-        yield "[DONE]"
+        match_response = ProfileMatcherCrew().crew.kickoff()
+        print(str(match_response))
+        # yield (match_response.raw)
+        yield json.loads(match_response.raw)
     
     
