@@ -1,22 +1,23 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { ApiService } from '../../service/api-service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, UpperCasePipe } from '@angular/common';
 import { ProfileReport } from '../../model/profileReport.interface';
 
 @Component({
   selector: 'app-matcher',
-  imports: [CommonModule],
+  imports: [CommonModule,UpperCasePipe],
   templateUrl: './matcher.html',
   styleUrl: './matcher.css',
 })
 export class Matcher {
   selectedFile: File | undefined;
+  isFileUploaded = false;
   jd: String = '';
   report: ProfileReport[]  = [];
   matchingReportsErr: any = 'ResumeErr';
   isMatchingTrigger = false;
   hasMatchingReport = false;
-
+  buttonText = "Match & Score 🎉"
   dummyReport:ProfileReport | undefined
 
   constructor(private apiService: ApiService,private cdr: ChangeDetectorRef) {
@@ -64,8 +65,20 @@ export class Matcher {
     console.log('Selected File : ' + this.selectedFile?.name);
 
     if (this.selectedFile) {
-      this.apiService.uploadResume(this.selectedFile).subscribe((res) => {
+      this.isFileUploaded = false
+      this.apiService.uploadResume(this.selectedFile).subscribe({
+        next:(res) => {
         alert(res.message);
+        this.isFileUploaded = true
+        this.cdr.detectChanges();
+        },
+        error:(data)=>{
+          console.log(data)
+        },
+        complete:()=>{
+          
+        }
+        
       });
     } else {
       alert('No file selected.');
